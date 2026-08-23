@@ -33,6 +33,8 @@ function splitTitle(raw: string): { artist: string; title: string } {
 
 interface DiscogsSearchItem {
   id: number;
+  /** Id of the "master" (the album) this pressing belongs to; 0/undefined if none. */
+  master_id?: number;
   title: string;
   year?: string;
   format?: string[];
@@ -75,14 +77,40 @@ export async function searchDiscogs(
   url.searchParams.set("q", query);
   url.searchParams.set("type", "release");
   url.searchParams.set("format", "Vinyl");
-  url.searchParams.set("per_page", String(perPage));
+  // Discogs returns one row per pressing, so many rows share the same album
+  // (master). Over-fetch, then collapse to one per master, to fill `perPage`
+  // with distinct albums.
+  const fetchCount = Math.min(100, Math.max(perPage * 5, perPage));
+  url.searchParams.set("per_page", String(fetchCount));
 
   const res = await fetch(url, { headers: headers(), signal });
   if (!res.ok) throw new Error(`discogs-search-${res.status}`);
   const data = (await res.json()) as { results?: DiscogsSearchItem[] };
-  return (data.results ?? [])
-    .filter((r) => r.id && r.title)
-    .map(mapSearchItem);
+  return dedupeByMaster(data.results ?? [], perPage).map(mapSearchItem);
+}
+
+/**
+ * Keep one pressing per master (album), preserving Discogs' relevance order.
+ * Pressings without a master (master_id 0/undefined) are all kept — they're
+ * distinct standalone releases. Stops once `limit` distinct albums are picked.
+ */
+function dedupeByMaster(
+  items: DiscogsSearchItem[],
+  limit: number
+): DiscogsSearchItem[] {
+  const seen = new Set<number>();
+  const picked: DiscogsSearchItem[] = [];
+  for (const r of items) {
+    if (!r.id || !r.title) continue;
+    const master = r.master_id ?? 0;
+    if (master > 0) {
+      if (seen.has(master)) continue;
+      seen.add(master);
+    }
+    picked.push(r);
+    if (picked.length >= limit) break;
+  }
+  return picked;
 }
 
 interface DiscogsRelease {
