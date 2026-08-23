@@ -110,6 +110,10 @@ create table collection_items (
   price_paid    numeric(12,2),
   currency      text,                          -- RSD / EUR / USD / GBP
   condition     vinyl_condition,
+  store         text,                          -- where bought (shop / city)
+  -- Future (map): geocoded location of `store`, filled via Nominatim or a pin.
+  -- store_lat  double precision,
+  -- store_lng  double precision,
   notes         text,
   unique (user_id, album_id)                   -- own an album once
 );
@@ -174,6 +178,10 @@ create policy "own collection" on collection_items
   bottleneck; `text[]` + GIN is fine for now.
 - `wishlist` table (same shape as `collection_items` minus purchase fields) if
   we add a "want" list.
+- **Map of where records are bought** (OpenStreetMap + Leaflet, no API key):
+  add `store_lat`/`store_lng` to `collection_items`, geocode `store` via
+  Nominatim (or let the user drop a pin), then plot markers / a heatmap. The
+  free-text `store` we collect now bootstraps this later.
 
 ---
 
@@ -190,3 +198,5 @@ change:
 Changelog:
 - 2026-08-23 — initial schema: `profiles`, `albums`, `collection_items` with
   purchase-history fields (date, price, currency, condition, notes).
+- 2026-08-23 — add `collection_items.store` (where bought); reserved
+  `store_lat`/`store_lng` for a future OpenStreetMap purchases map.

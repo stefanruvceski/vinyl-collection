@@ -90,6 +90,22 @@ export default function PurchaseDetails({ album }: { album: Album }) {
         </div>
 
         <div className="sm:col-span-2">
+          <label className={labelClass} htmlFor="pd-store">
+            Bought at
+          </label>
+          <input
+            id="pd-store"
+            type="text"
+            placeholder="Shop name and/or city…"
+            className={fieldClass}
+            value={item.store ?? ""}
+            onChange={(e) =>
+              update(album.id, { store: e.target.value || undefined })
+            }
+          />
+        </div>
+
+        <div className="sm:col-span-2">
           <label className={labelClass} htmlFor="pd-notes">
             Notes
           </label>

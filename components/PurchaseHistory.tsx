@@ -40,23 +40,41 @@ export default function PurchaseHistory() {
   );
 
   const totals = new Map<string, number>();
+  const stores = new Map<string, number>();
   for (const it of items) {
     if (it.pricePaid) {
       const c = it.currency ?? "RSD";
       totals.set(c, (totals.get(c) ?? 0) + it.pricePaid);
     }
+    const s = it.store?.trim();
+    if (s) stores.set(s, (stores.get(s) ?? 0) + 1);
   }
+  const topStores = [...stores.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
   const fmt = (n: number) => new Intl.NumberFormat().format(n);
 
   return (
     <div>
-      {totals.size > 0 && (
-        <p className="mb-6 text-[14px] text-secondary">
-          Total spent:{" "}
-          <span className="font-medium text-accent">
-            {[...totals].map(([c, v]) => `${fmt(v)} ${c}`).join(" · ")}
-          </span>
-        </p>
+      {(totals.size > 0 || topStores.length > 0) && (
+        <div className="mb-6 space-y-1 text-[14px] text-secondary">
+          {totals.size > 0 && (
+            <p>
+              Total spent:{" "}
+              <span className="font-medium text-accent">
+                {[...totals].map(([c, v]) => `${fmt(v)} ${c}`).join(" · ")}
+              </span>
+            </p>
+          )}
+          {topStores.length > 0 && (
+            <p>
+              You buy most at:{" "}
+              <span className="font-medium text-accent">
+                {topStores.map(([s, n]) => `${s} (${n})`).join(" · ")}
+              </span>
+            </p>
+          )}
+        </div>
       )}
 
       <ul className="divide-y divide-hair">
@@ -84,6 +102,7 @@ export default function PurchaseHistory() {
                 <p className="mt-0.5 text-[12px] text-secondary">
                   {label}
                   {it.condition ? ` · ${it.condition}` : ""}
+                  {it.store ? ` · ${it.store}` : ""}
                 </p>
               </div>
               {it.pricePaid ? (
