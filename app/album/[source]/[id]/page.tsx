@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CollectionButton from "@/components/CollectionButton";
 import JsonLd from "@/components/JsonLd";
+import PurchaseDetails from "@/components/PurchaseDetails";
 import VinylArtwork from "@/components/VinylArtwork";
 import { getAlbum } from "@/lib/albums";
 import { siteConfig } from "@/lib/site";
@@ -126,6 +127,8 @@ export default async function AlbumPage({ params }: Params) {
           <CollectionButton album={album} />
         </div>
       </div>
+
+      <PurchaseDetails album={album} />
 
       {album.tracklist?.length ? (
         <section className="mt-12">

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Album, SearchResponse } from "@/lib/types";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import AlbumCard from "./AlbumCard";
+import Recommendations from "./Recommendations";
 
 const MIN_CHARS = 3;
 
@@ -119,6 +120,8 @@ export default function SearchBar() {
           No results for “{debounced.trim()}”.
         </p>
       )}
+
+      {input.trim().length === 0 && <Recommendations />}
     </div>
   );
 }

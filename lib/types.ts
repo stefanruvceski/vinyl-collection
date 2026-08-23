@@ -35,6 +35,42 @@ export interface Album {
   sourceUrl?: string;
 }
 
+/** Standard Discogs (Goldmine) media grading, best → worst. */
+export const VINYL_CONDITIONS = [
+  "Mint (M)",
+  "Near Mint (NM)",
+  "Very Good Plus (VG+)",
+  "Very Good (VG)",
+  "Good Plus (G+)",
+  "Good (G)",
+  "Fair (F)",
+  "Poor (P)",
+] as const;
+
+export const CURRENCIES = ["RSD", "EUR", "USD", "GBP"] as const;
+
+/**
+ * A saved album plus purchase/acquisition metadata. Stored in localStorage.
+ * `addedAt` is set automatically; the rest is filled in by the user later.
+ */
+export interface CollectionItem extends Album {
+  /** ISO timestamp when added to the collection (auto). */
+  addedAt?: string;
+  /** Purchase date, "YYYY-MM-DD". */
+  acquiredDate?: string;
+  pricePaid?: number;
+  currency?: string;
+  /** One of VINYL_CONDITIONS. */
+  condition?: string;
+  notes?: string;
+}
+
+/** Editable purchase fields (everything except the album + addedAt). */
+export type PurchaseMeta = Pick<
+  CollectionItem,
+  "acquiredDate" | "pricePaid" | "currency" | "condition" | "notes"
+>;
+
 export type SearchMode = "suggest" | "full";
 
 export interface SearchResponse {

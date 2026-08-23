@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import CollectionList from "@/components/CollectionList";
+import CollectionBrowser from "@/components/CollectionBrowser";
 
 // The collection is private, per-browser (localStorage) — we don't index it.
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default function CollectionPage() {
       <h1 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl">
         My collection
       </h1>
-      <CollectionList />
+      <CollectionBrowser />
     </div>
   );
 }

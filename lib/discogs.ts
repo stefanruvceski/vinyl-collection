@@ -198,6 +198,18 @@ export async function searchDiscogsByArtist(
   return dedupeByMaster(preferLatin(items), perPage).map(mapSearchItem);
 }
 
+/** Popular-ish vinyl in a genre (deduped to one per album). */
+export async function searchDiscogsByGenre(
+  genre: string,
+  perPage = 18,
+  signal?: AbortSignal
+): Promise<Album[]> {
+  if (!discogsEnabled()) throw new Error("discogs-not-configured");
+  const count = Math.min(100, Math.max(perPage * 3, perPage));
+  const items = await runDiscogsSearch({ type: "release", genre }, count, signal);
+  return dedupeByMaster(preferLatin(items), perPage).map(mapSearchItem);
+}
+
 /**
  * Collapse to one row per album: skip repeated release ids (the two searches
  * can overlap) and keep one pressing per master (master_id 0/undefined = a
