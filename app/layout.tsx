@@ -72,13 +72,6 @@ export default function RootLayout({
           <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8">
             {children}
           </main>
-
-          <footer className="mx-auto w-full max-w-6xl px-5 py-10">
-            <p className="border-t border-hair pt-6 text-[12px] text-secondary">
-              Data from Discogs &amp; MusicBrainz. Your collection is stored
-              locally in your browser.
-            </p>
-          </footer>
         </div>
       </body>
     </html>
