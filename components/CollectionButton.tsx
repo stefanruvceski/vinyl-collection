@@ -27,7 +27,7 @@ export default function CollectionButton({
         (className ? " " + className : "")
       }
     >
-      {owned ? "✅ Imaš — ukloni" : "➕ Dodaj u kolekciju"}
+      {owned ? "✅ Owned — remove" : "➕ Add to collection"}
     </button>
   );
 }

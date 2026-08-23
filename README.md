@@ -1,100 +1,100 @@
 # Vinyl Collection 💿
 
-Sajt za vođenje evidencije o kolekciji ploča. Pretraži bilo koji album,
-označi one koje **imaš**, i kad si u prodavnici brzo proveri da li ti neka
-ploča već fali u kolekciji — bez ručnog unosa podataka.
+A site for keeping track of your vinyl record collection. Search for any
+album, mark the ones you **own**, and when you're in a shop quickly check
+whether a record is still missing from your collection — no manual data entry.
 
-Podaci o albumima se povlače automatski:
+Album data is pulled automatically:
 
-- **Discogs** — primarni izvor (vinyl-specifična baza: format, izdavač,
-  kataloški broj, godina, cover, lista pesama).
-- **MusicBrainz + Cover Art Archive** — fallback (radi bez ključa).
+- **Discogs** — primary source (vinyl-specific database: format, label,
+  catalog number, year, cover, tracklist).
+- **MusicBrainz + Cover Art Archive** — fallback (works without a key).
 
-Kolekcija se za sada čuva **lokalno u pregledaču** (`localStorage`) — nema
-naloga ni baze. Ovo je MVP za testiranje ideje.
+The collection is stored **locally in the browser** (`localStorage`) for now —
+no accounts, no database. This is an MVP to validate the idea.
 
 ## Stack
 
 - Next.js 14 (App Router) + TypeScript
 - Tailwind CSS
-- SEO: server-renderovane `/album/...` stranice, `generateMetadata`,
+- SEO: server-rendered `/album/...` pages, `generateMetadata`,
   JSON-LD (`schema.org/MusicAlbum`), `sitemap.xml`, `robots.txt`
 
-## Pokretanje
+## Running
 
 ```bash
 npm install
-cp .env.local.example .env.local   # popuni vrednosti (vidi ispod)
+cp .env.local.example .env.local   # fill in the values (see below)
 npm run dev                         # http://localhost:3000
 ```
 
-App radi **i bez ikakvog ključa** — u tom slučaju pretraga koristi
-MusicBrainz. Za bolje (vinyl-specifične) rezultate dodaj besplatan Discogs
-token.
+The app works **without any key** — in that case search uses MusicBrainz. For
+better (vinyl-specific) results, add a free Discogs token.
 
-### Discogs token (opciono, preporučeno)
+### Discogs token (optional, recommended)
 
-1. Uloguj se na Discogs → **Settings → Developers**
+1. Sign in to Discogs → **Settings → Developers**
    (<https://www.discogs.com/settings/developers>).
-2. Klikni **Generate new token**.
-3. Ubaci ga u `.env.local`:
+2. Click **Generate new token**.
+3. Add it to `.env.local`:
 
    ```
-   DISCOGS_TOKEN=tvoj_token_ovde
+   DISCOGS_TOKEN=your_token_here
    ```
 
-4. Restartuj `npm run dev`.
+4. Restart `npm run dev`.
 
-### Ostale env varijable
+### Other env variables
 
-| Varijabla | Opis |
+| Variable | Description |
 | --- | --- |
-| `DISCOGS_TOKEN` | Discogs personal token (opciono; bez njega ide MusicBrainz). |
-| `MUSICBRAINZ_USER_AGENT` | MusicBrainz zahteva opisni User-Agent sa kontaktom. |
-| `NEXT_PUBLIC_SITE_URL` | Bazni URL sajta (za SEO metadata, sitemap, OG tagove). |
+| `DISCOGS_TOKEN` | Discogs personal token (optional; without it MusicBrainz is used). |
+| `MUSICBRAINZ_USER_AGENT` | MusicBrainz requires a descriptive User-Agent with a contact. |
+| `NEXT_PUBLIC_SITE_URL` | Base site URL (for SEO metadata, sitemap, OG tags). |
 
-## Kako radi
+## How it works
 
-1. Kucaš u pretragu → posle ~325 ms pauze (**debounce**, min. 3 znaka) šalje
-   se **jedan** zahtev; prethodni u letu se otkazuje (`AbortController`).
-2. Server (Next.js Route Handler) proksira poziv ka Discogs-u (token ostaje
-   tajan, nema CORS problema), normalizuje rezultate i po potrebi pada na
-   MusicBrainz.
-3. Svaki rezultat se poredi sa tvojom kolekcijom i dobija badge
-   **✅ U kolekciji** ako ga već imaš.
-4. Klik na **➕ Dodaj** čuva ceo album (sa svim podacima sa API-ja) u
+1. As you type in the search box, after a ~325 ms pause (**debounce**, min. 3
+   characters) a **single** request is sent; any in-flight request is
+   cancelled (`AbortController`).
+2. The server (a Next.js Route Handler) proxies the call to Discogs (the token
+   stays secret, no CORS issues), normalizes the results, and falls back to
+   MusicBrainz when needed.
+3. Each result is cross-referenced against your collection and gets an
+   **✅ In collection** badge if you already own it.
+4. Clicking **➕ Add** saves the full album (with all the data from the API) to
    `localStorage`.
-5. `/album/[source]/[id]` je javna, server-renderovana stranica (indeksabilna
-   za Google), a „imam/nemam" dugme je klijentski sloj preko nje.
+5. `/album/[source]/[id]` is a public, server-rendered page (indexable by
+   Google), and the owned/not-owned button is a client-side layer on top of it.
 
-## Skripte
+## Scripts
 
-| Komanda | Opis |
+| Command | Description |
 | --- | --- |
 | `npm run dev` | Development server. |
-| `npm run build` | Produkcioni build. |
-| `npm run start` | Pokreni produkcioni build. |
+| `npm run build` | Production build. |
+| `npm run start` | Run the production build. |
 | `npm run lint` | ESLint. |
 
-## Struktura
+## Structure
 
 ```
 app/
-  layout.tsx                     # root layout + globalna SEO metadata
-  page.tsx                       # početna (pretraga)
-  collection/page.tsx            # moja kolekcija (noindex)
-  album/[source]/[id]/page.tsx   # SSR detalj albuma + JSON-LD
-  api/search/route.ts            # pretraga (mode=suggest|full)
+  layout.tsx                     # root layout + global SEO metadata
+  page.tsx                       # home (search)
+  collection/page.tsx            # my collection (noindex)
+  album/[source]/[id]/page.tsx   # SSR album detail + JSON-LD
+  api/search/route.ts            # search (mode=suggest|full)
   api/album/[source]/[id]/route.ts
   sitemap.ts, robots.ts
 components/                       # SearchBar, AlbumCard, CollectionButton, ...
-lib/                             # discogs, musicbrainz, albums (fallback), hooks, tipovi
+lib/                             # discogs, musicbrainz, albums (fallback), hooks, types
 ```
 
-## Sledeći koraci (van MVP-a)
+## Next steps (beyond the MVP)
 
-- Auth + baza (npr. Postgres) da kolekcija ne bude vezana za jedan pregledač.
-- Javne stranice profila/kolekcije → prava SEO vrednost (indeksabilne
-  kolekcije).
-- Dedupe pressinga preko Discogs „master" release-a.
+- Auth + a database (e.g. Postgres) so the collection isn't tied to a single
+  browser.
+- Public profile/collection pages → real SEO value (indexable collections).
+- Deduplicate pressings via the Discogs "master" release.
 ```

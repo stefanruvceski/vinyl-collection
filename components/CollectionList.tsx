@@ -8,18 +8,18 @@ export default function CollectionList() {
   const { items, ready } = useCollection();
 
   if (!ready) {
-    return <p className="py-10 text-center text-neutral-500">Učitavam…</p>;
+    return <p className="py-10 text-center text-neutral-500">Loading…</p>;
   }
 
   if (items.length === 0) {
     return (
       <div className="py-12 text-center">
-        <p className="text-neutral-400">Tvoja kolekcija je još prazna.</p>
+        <p className="text-neutral-400">Your collection is empty.</p>
         <Link
           href="/"
           className="mt-3 inline-block rounded-md bg-wax-gold px-4 py-2 text-sm font-medium text-black hover:bg-wax-gold/90"
         >
-          Pretraži i dodaj prvu ploču
+          Search and add your first record
         </Link>
       </div>
     );
@@ -28,7 +28,7 @@ export default function CollectionList() {
   return (
     <div>
       <p className="mb-4 text-sm text-neutral-500">
-        {items.length} {items.length === 1 ? "ploča" : "ploča"} u kolekciji
+        {items.length} {items.length === 1 ? "record" : "records"} in collection
       </p>
       <div className="grid gap-3">
         {items.map((album) => (

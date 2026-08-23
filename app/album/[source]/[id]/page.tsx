@@ -22,11 +22,11 @@ async function load(params: Params["params"]): Promise<Album | null> {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const album = await load(params);
   if (!album) {
-    return { title: "Album nije pronađen" };
+    return { title: "Album not found" };
   }
   const title = `${album.artist} – ${album.title}`;
   const parts = [album.year, album.format, album.label].filter(Boolean).join(" · ");
-  const description = `${title}${parts ? ` (${parts})` : ""}. Dodaj u svoju vinyl kolekciju i prati šta već imaš.`;
+  const description = `${title}${parts ? ` (${parts})` : ""}. Add it to your vinyl collection and keep track of what you already own.`;
   const path = `/album/${album.source}/${encodeURIComponent(album.sourceId)}`;
 
   return {
@@ -78,13 +78,13 @@ export default async function AlbumPage({ params }: Params) {
   };
 
   const meta = [
-    ["Izvođač", album.artist],
-    ["Godina", album.year?.toString()],
+    ["Artist", album.artist],
+    ["Year", album.year?.toString()],
     ["Format", album.format],
-    ["Izdavač", album.label],
-    ["Kataloški broj", album.catalogNumber],
-    ["Zemlja", album.country],
-    ["Žanr", album.genres?.join(", ")],
+    ["Label", album.label],
+    ["Catalog number", album.catalogNumber],
+    ["Country", album.country],
+    ["Genre", album.genres?.join(", ")],
   ].filter(([, v]) => Boolean(v)) as [string, string][];
 
   return (
@@ -95,7 +95,7 @@ export default async function AlbumPage({ params }: Params) {
         href="/"
         className="text-sm text-neutral-500 hover:text-neutral-300"
       >
-        ← Nazad na pretragu
+        ← Back to search
       </Link>
 
       <div className="mt-4 flex flex-col gap-5 sm:flex-row">
@@ -126,7 +126,7 @@ export default async function AlbumPage({ params }: Params) {
 
       {album.tracklist?.length ? (
         <section className="mt-8">
-          <h2 className="mb-3 text-lg font-semibold">Lista pesama</h2>
+          <h2 className="mb-3 text-lg font-semibold">Tracklist</h2>
           <ol className="divide-y divide-wax-border">
             {album.tracklist.map((t, i) => (
               <li key={i} className="flex items-center gap-3 py-2 text-sm">
@@ -145,7 +145,7 @@ export default async function AlbumPage({ params }: Params) {
 
       {album.sourceUrl && (
         <p className="mt-8 text-xs text-neutral-600">
-          Izvor podataka:{" "}
+          Data source:{" "}
           <a
             href={album.sourceUrl}
             target="_blank"

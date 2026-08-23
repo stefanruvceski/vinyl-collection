@@ -3,7 +3,7 @@ import SearchBar from "@/components/SearchBar";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: `${siteConfig.name} — da li već imaš tu ploču?`,
+  title: `${siteConfig.name} — do you already own this record?`,
   description: siteConfig.description,
   alternates: { canonical: "/" },
 };
@@ -13,11 +13,11 @@ export default function HomePage() {
     <div>
       <section className="py-4 text-center">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          Da li već imaš tu ploču?
+          Do you already own this record?
         </h1>
         <p className="mx-auto mt-2 max-w-md text-sm text-neutral-400">
-          Pretraži album, označi šta imaš, i nikad više ne kupi duplikat. Podaci
-          se povlače automatski sa Discogs-a i MusicBrainz-a.
+          Search for an album, mark what you own, and never buy a duplicate
+          again. Data is pulled automatically from Discogs and MusicBrainz.
         </p>
       </section>
 

@@ -54,7 +54,7 @@ export default function SearchBar() {
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
-        setError("Pretraga trenutno ne radi. Pokušaj ponovo.");
+        setError("Search isn't working right now. Please try again.");
         setLoading(false);
       });
 
@@ -70,8 +70,8 @@ export default function SearchBar() {
           type="search"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Pretraži album ili izvođača (npr. born to die)…"
-          aria-label="Pretraga albuma"
+          placeholder="Search album or artist (e.g. born to die)…"
+          aria-label="Album search"
           autoComplete="off"
           className="w-full rounded-lg border border-wax-border bg-wax-card px-4 py-3 pr-11 text-base outline-none placeholder:text-neutral-500 focus:border-wax-gold"
         />
@@ -85,10 +85,11 @@ export default function SearchBar() {
       </div>
 
       <div className="mt-2 min-h-[1.25rem] text-sm text-neutral-500">
-        {tooShort && <span>Ukucaj bar {MIN_CHARS} karaktera…</span>}
+        {tooShort && <span>Type at least {MIN_CHARS} characters…</span>}
         {!tooShort && searched && source && results.length > 0 && (
           <span>
-            Rezultati iz izvora: <span className="text-neutral-300">{source}</span>
+            Results from source:{" "}
+            <span className="text-neutral-300">{source}</span>
           </span>
         )}
         {error && <span className="text-red-400">{error}</span>}
@@ -102,7 +103,7 @@ export default function SearchBar() {
 
       {searched && !loading && results.length === 0 && !error && (
         <p className="mt-6 text-center text-neutral-500">
-          Nema rezultata za „{debounced.trim()}”.
+          No results for “{debounced.trim()}”.
         </p>
       )}
     </div>

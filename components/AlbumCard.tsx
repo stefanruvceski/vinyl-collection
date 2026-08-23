@@ -15,7 +15,7 @@ export default function AlbumCard({ album }: { album: Album }) {
     <article className="relative flex gap-4 rounded-lg border border-wax-border bg-wax-card p-3">
       {owned && (
         <span className="absolute right-3 top-3 rounded-full bg-wax-gold/15 px-2 py-0.5 text-xs font-medium text-wax-gold">
-          ✅ U kolekciji
+          ✅ In collection
         </span>
       )}
 
