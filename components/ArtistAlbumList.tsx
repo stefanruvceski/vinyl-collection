@@ -9,9 +9,8 @@ import {
   distinctGenres,
 } from "@/lib/collectionFilters";
 import AlbumCard from "./AlbumCard";
+import FilterMenu, { type MenuOption } from "./FilterMenu";
 
-const selectClass =
-  "bg-elevated rounded-full border border-hair px-3.5 py-2 text-[13px] text-secondary outline-none focus:border-accent/50";
 const gridClass =
   "grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5";
 
@@ -41,34 +40,29 @@ export default function ArtistAlbumList({ albums }: { albums: Album[] }) {
       {(genres.length > 1 || decades.length > 1) && (
         <div className="mb-6 flex flex-wrap gap-2">
           {genres.length > 1 && (
-            <select
-              aria-label="Filter by genre"
-              className={selectClass}
+            <FilterMenu
+              ariaLabel="Filter by genre"
               value={genre}
-              onChange={(e) => setGenre(e.target.value)}
-            >
-              <option value="">All genres</option>
-              {genres.map((g) => (
-                <option key={g} value={g}>
-                  {g}
-                </option>
-              ))}
-            </select>
+              onChange={setGenre}
+              options={[
+                { value: "", label: "All genres" },
+                ...genres.map((g): MenuOption => ({ value: g, label: g })),
+              ]}
+            />
           )}
           {decades.length > 1 && (
-            <select
-              aria-label="Filter by decade"
-              className={selectClass}
+            <FilterMenu
+              ariaLabel="Filter by decade"
               value={decade}
-              onChange={(e) => setDecade(e.target.value)}
-            >
-              <option value="">All decades</option>
-              {decades.map((d) => (
-                <option key={d} value={d}>
-                  {d}s
-                </option>
-              ))}
-            </select>
+              onChange={setDecade}
+              options={[
+                { value: "", label: "All decades" },
+                ...decades.map((d): MenuOption => ({
+                  value: String(d),
+                  label: `${d}s`,
+                })),
+              ]}
+            />
           )}
         </div>
       )}
