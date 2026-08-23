@@ -1,4 +1,4 @@
-# Vinyl Collection 💿
+# Vinyl Nation 💿
 
 A site for keeping track of your vinyl record collection. Search for any
 album, mark the ones you **own**, and when you're in a shop quickly check
