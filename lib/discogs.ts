@@ -31,10 +31,6 @@ function splitTitle(raw: string): { artist: string; title: string } {
   };
 }
 
-/** CJK / Hangul / Kana ranges — used to spot localized (e.g. Asian) pressings. */
-const NON_LATIN =
-  /[぀-ヿ㐀-䶿一-鿿가-힯＀-￯]/;
-
 /**
  * Discogs joins an original title with its local translation using " = " on
  * localized releases (e.g. "Dawn FM = 黎明电台"). Keep the original side.
@@ -60,16 +56,6 @@ function cleanArtist(s: string): string {
     )
     .filter(Boolean);
   return Array.from(new Set(parts)).join(", ");
-}
-
-/** Stable-partition so localized (non-Latin) titles come last, keeping order. */
-function preferLatin(items: DiscogsSearchItem[]): DiscogsSearchItem[] {
-  const latin: DiscogsSearchItem[] = [];
-  const other: DiscogsSearchItem[] = [];
-  for (const r of items) {
-    (NON_LATIN.test(r.title || "") ? other : latin).push(r);
-  }
-  return [...latin, ...other];
 }
 
 interface DiscogsSearchItem {
@@ -108,14 +94,13 @@ function mapSearchItem(item: DiscogsSearchItem): Album {
   };
 }
 
-/** One Discogs vinyl-release search with the given params. Over-fetches. */
+/** One Discogs vinyl search (caller sets `type` in params). Over-fetches. */
 async function runDiscogsSearch(
   params: Record<string, string>,
   count: number,
   signal?: AbortSignal
 ): Promise<DiscogsSearchItem[]> {
   const url = new URL(`${API}/database/search`);
-  url.searchParams.set("type", "release");
   url.searchParams.set("format", "Vinyl");
   url.searchParams.set("per_page", String(count));
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
@@ -132,16 +117,16 @@ export async function searchDiscogs(
   signal?: AbortSignal
 ): Promise<Album[]> {
   if (!discogsEnabled()) throw new Error("discogs-not-configured");
-  // Discogs returns one row per pressing, so over-fetch and later collapse to
-  // one per master (album).
-  const count = Math.min(100, Math.max(perPage * 5, perPage));
+  // Search MASTERS (the album, not individual pressings): one canonical row per
+  // album, with the original title/year — no localized pressings, no duplicates.
+  const count = Math.min(100, Math.max(perPage * 3, perPage));
 
   // Search the query as an ARTIST and as a general term (title + everything) in
   // parallel, so typing "Weeknd" returns the artist's own albums alongside any
   // album whose name matches — the artist's records are listed first.
   const [byArtist, byQuery] = await Promise.allSettled([
-    runDiscogsSearch({ artist: query }, count, signal),
-    runDiscogsSearch({ q: query }, count, signal),
+    runDiscogsSearch({ type: "master", artist: query }, count, signal),
+    runDiscogsSearch({ type: "master", q: query }, count, signal),
   ]);
 
   if (byArtist.status === "rejected" && byQuery.status === "rejected") {
@@ -150,12 +135,10 @@ export async function searchDiscogs(
   const artistItems = byArtist.status === "fulfilled" ? byArtist.value : [];
   const queryItems = byQuery.status === "fulfilled" ? byQuery.value : [];
 
-  return dedupeByMaster(preferLatin([...artistItems, ...queryItems]), perPage).map(
-    mapSearchItem
-  );
+  return dedupeById([...artistItems, ...queryItems], perPage).map(mapSearchItem);
 }
 
-/** All of an artist's vinyl albums (deduped to one per master). */
+/** All of an artist's vinyl albums (one canonical master row per album). */
 export async function searchDiscogsByArtist(
   artist: string,
   perPage = 40,
@@ -163,30 +146,23 @@ export async function searchDiscogsByArtist(
 ): Promise<Album[]> {
   if (!discogsEnabled()) throw new Error("discogs-not-configured");
   const count = Math.min(100, Math.max(perPage * 2, perPage));
-  const items = await runDiscogsSearch({ artist }, count, signal);
-  return dedupeByMaster(preferLatin(items), perPage).map(mapSearchItem);
+  const items = await runDiscogsSearch({ type: "master", artist }, count, signal);
+  return dedupeById(items, perPage).map(mapSearchItem);
 }
 
 /**
- * Collapse to one row per album: skip repeated release ids (the two searches
- * can overlap) and keep one pressing per master (master_id 0/undefined = a
- * standalone release, kept as-is), preserving order. Stops at `limit` albums.
+ * Drop repeated ids (the artist and general searches can overlap), preserving
+ * order. Master rows are already one per album. Stops at `limit` albums.
  */
-function dedupeByMaster(
+function dedupeById(
   items: DiscogsSearchItem[],
   limit: number
 ): DiscogsSearchItem[] {
-  const seenMaster = new Set<number>();
-  const seenId = new Set<number>();
+  const seen = new Set<number>();
   const picked: DiscogsSearchItem[] = [];
   for (const r of items) {
-    if (!r.id || !r.title || seenId.has(r.id)) continue;
-    seenId.add(r.id);
-    const master = r.master_id ?? 0;
-    if (master > 0) {
-      if (seenMaster.has(master)) continue;
-      seenMaster.add(master);
-    }
+    if (!r.id || !r.title || seen.has(r.id)) continue;
+    seen.add(r.id);
     picked.push(r);
     if (picked.length >= limit) break;
   }
@@ -255,4 +231,78 @@ export async function getDiscogsRelease(
   if (!res.ok) throw new Error(`discogs-release-${res.status}`);
   const data = (await res.json()) as DiscogsRelease;
   return mapRelease(data);
+}
+
+interface DiscogsMaster {
+  id: number;
+  title: string;
+  artists?: { name: string }[];
+  year?: number;
+  genres?: string[];
+  styles?: string[];
+  images?: { uri: string; uri150?: string }[];
+  tracklist?: { position: string; title: string; duration?: string }[];
+  main_release?: number;
+  uri?: string;
+}
+
+function mapMaster(m: DiscogsMaster): Album {
+  const cover = m.images?.[0]?.uri;
+  return {
+    id: albumKey("discogs", m.id),
+    source: "discogs",
+    sourceId: String(m.id),
+    title: cleanTitle(m.title),
+    artist: cleanArtist(m.artists?.map((a) => a.name).join(", ") || ""),
+    year: m.year || undefined,
+    thumb: m.images?.[0]?.uri150 || cover,
+    coverImage: cover,
+    genres: [...(m.genres ?? []), ...(m.styles ?? [])],
+    tracklist: m.tracklist?.map((t) => ({
+      position: t.position,
+      title: t.title,
+      duration: t.duration || undefined,
+    })),
+    sourceUrl: m.uri
+      ? m.uri.startsWith("http")
+        ? m.uri
+        : `https://www.discogs.com${m.uri}`
+      : `https://www.discogs.com/master/${m.id}`,
+  };
+}
+
+/**
+ * Album detail from a Discogs MASTER (canonical title/year/art), enriched with
+ * the master's representative pressing (`main_release`) for the pressing-level
+ * fields a collector wants: format, label, catalog number, country.
+ */
+export async function getDiscogsMaster(
+  id: string,
+  signal?: AbortSignal
+): Promise<Album | null> {
+  const res = await fetch(`${API}/masters/${encodeURIComponent(id)}`, {
+    headers: headers(),
+    signal,
+    next: { revalidate: 60 * 60 * 24 },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`discogs-master-${res.status}`);
+  const master = (await res.json()) as DiscogsMaster;
+  const album = mapMaster(master);
+
+  if (master.main_release) {
+    const rel = await getDiscogsRelease(String(master.main_release), signal).catch(
+      () => null
+    );
+    if (rel) {
+      album.format ??= rel.format;
+      album.label ??= rel.label;
+      album.catalogNumber ??= rel.catalogNumber;
+      album.country ??= rel.country;
+      if (!album.tracklist?.length) album.tracklist = rel.tracklist;
+      album.coverImage ??= rel.coverImage;
+      album.thumb ??= rel.thumb;
+    }
+  }
+  return album;
 }

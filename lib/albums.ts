@@ -1,6 +1,6 @@
 import {
   discogsEnabled,
-  getDiscogsRelease,
+  getDiscogsMaster,
   searchDiscogs,
   searchDiscogsByArtist,
 } from "./discogs";
@@ -105,7 +105,7 @@ export async function getAlbum(
 ): Promise<Album | null> {
   if (source === "discogs") {
     if (!discogsEnabled()) return null;
-    return getDiscogsRelease(id);
+    return getDiscogsMaster(id);
   }
   if (source === "musicbrainz") {
     return getMusicBrainzRelease(id);
