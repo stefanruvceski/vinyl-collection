@@ -107,7 +107,7 @@ export default function SearchBar() {
       </div>
 
       {results.length > 0 && (
-        <div className="mt-6 grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {results.map((album) => (
             <AlbumCard key={album.id} album={album} />
           ))}

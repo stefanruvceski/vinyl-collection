@@ -11,7 +11,7 @@ export default function AlbumCard({ album }: { album: Album }) {
   const href = `/album/${album.source}/${encodeURIComponent(album.sourceId)}`;
 
   return (
-    <article className="group relative transition-[z-index] duration-0 hover:z-10">
+    <article className="group text-center">
       <div className="relative">
         <Link
           href={href}
@@ -29,7 +29,7 @@ export default function AlbumCard({ album }: { album: Album }) {
           aria-label={owned ? "Remove from collection" : "Add to collection"}
           title={owned ? "In collection — remove" : "Add to collection"}
           className={
-            "absolute bottom-2 right-2 z-20 flex h-9 w-9 items-center justify-center rounded-full text-lg shadow-md backdrop-blur-md transition disabled:opacity-50 " +
+            "absolute bottom-[7%] right-[7%] z-20 flex h-9 w-9 items-center justify-center rounded-full text-lg shadow-md backdrop-blur-md transition disabled:opacity-50 " +
             (owned
               ? "bg-accent text-white hover:bg-accent-hover"
               : "bg-black/55 text-white opacity-100 hover:bg-black/70 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100")
@@ -66,7 +66,7 @@ export default function AlbumCard({ album }: { album: Album }) {
         </button>
       </div>
 
-      <div className="mt-2.5 px-0.5">
+      <div className="mt-3 px-1">
         <Link href={href} className="block">
           <h3 className="truncate text-[14px] font-medium leading-tight hover:text-accent">
             {album.title}

@@ -30,7 +30,7 @@ export default function CollectionList() {
       <p className="mb-6 text-[14px] text-secondary">
         {items.length} {items.length === 1 ? "record" : "records"}
       </p>
-      <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {items.map((album) => (
           <AlbumCard key={album.id} album={album} />
         ))}
