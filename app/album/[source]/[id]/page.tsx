@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import CollectionButton from "@/components/CollectionButton";
-import CoverImage from "@/components/CoverImage";
 import JsonLd from "@/components/JsonLd";
+import VinylArtwork from "@/components/VinylArtwork";
 import { getAlbum } from "@/lib/albums";
 import { siteConfig } from "@/lib/site";
 import { Album } from "@/lib/types";
@@ -98,33 +98,27 @@ export default async function AlbumPage({ params }: Params) {
         ← Back to search
       </Link>
 
-      <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-end sm:gap-8">
-        <div className="mx-auto w-56 shrink-0 overflow-hidden rounded-xl2 shadow-cover sm:mx-0">
-          <div className="aspect-square bg-elevated">
-            <CoverImage
-              src={album.coverImage || album.thumb}
-              alt={`${album.artist} – ${album.title}`}
-              className="h-full w-full"
-            />
-          </div>
+      <div className="mt-6 flex flex-col items-center text-center">
+        <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+          {album.title}
+        </h1>
+        <p className="mt-1.5 text-xl font-medium text-accent">{album.artist}</p>
+        <p className="mt-2 text-[13px] uppercase tracking-wide text-secondary">
+          {[album.genres?.[0], album.year, album.format]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+
+        <div className="mt-9 w-52 sm:w-64">
+          <VinylArtwork
+            variant="detail"
+            src={album.coverImage || album.thumb}
+            alt={`${album.artist} – ${album.title}`}
+          />
         </div>
 
-        <div className="min-w-0 flex-1 text-center sm:text-left">
-          <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-            {album.title}
-          </h1>
-          <p className="mt-1.5 text-xl font-medium text-accent">
-            {album.artist}
-          </p>
-          <p className="mt-2 text-[13px] uppercase tracking-wide text-secondary">
-            {[album.genres?.[0], album.year, album.format]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-
-          <div className="mt-5">
-            <CollectionButton album={album} />
-          </div>
+        <div className="mt-9">
+          <CollectionButton album={album} />
         </div>
       </div>
 

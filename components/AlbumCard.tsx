@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Album } from "@/lib/types";
 import { useCollection } from "@/lib/useCollection";
-import CoverImage from "./CoverImage";
+import VinylArtwork from "./VinylArtwork";
 
 export default function AlbumCard({ album }: { album: Album }) {
   const { has, toggle, ready } = useCollection();
@@ -11,20 +11,14 @@ export default function AlbumCard({ album }: { album: Album }) {
   const href = `/album/${album.source}/${encodeURIComponent(album.sourceId)}`;
 
   return (
-    <article className="group">
+    <article className="group relative transition-[z-index] duration-0 hover:z-10">
       <div className="relative">
         <Link
           href={href}
           aria-label={`${album.artist} – ${album.title}`}
-          className="block overflow-hidden rounded-xl shadow-cover transition-shadow duration-300 group-hover:shadow-cover-hover"
+          className="block"
         >
-          <div className="aspect-square bg-elevated">
-            <CoverImage
-              src={album.thumb}
-              alt={`${album.artist} – ${album.title}`}
-              className="h-full w-full"
-            />
-          </div>
+          <VinylArtwork src={album.thumb} alt={`${album.artist} – ${album.title}`} />
         </Link>
 
         <button
@@ -35,10 +29,10 @@ export default function AlbumCard({ album }: { album: Album }) {
           aria-label={owned ? "Remove from collection" : "Add to collection"}
           title={owned ? "In collection — remove" : "Add to collection"}
           className={
-            "absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full text-lg shadow-md backdrop-blur-md transition disabled:opacity-50 " +
+            "absolute bottom-2 right-2 z-20 flex h-9 w-9 items-center justify-center rounded-full text-lg shadow-md backdrop-blur-md transition disabled:opacity-50 " +
             (owned
               ? "bg-accent text-white hover:bg-accent-hover"
-              : "bg-black/55 text-white opacity-0 hover:bg-black/70 focus-visible:opacity-100 group-hover:opacity-100")
+              : "bg-black/55 text-white opacity-100 hover:bg-black/70 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100")
           }
         >
           {owned ? (
