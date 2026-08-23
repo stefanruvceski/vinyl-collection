@@ -111,9 +111,8 @@ create table collection_items (
   currency      text,                          -- RSD / EUR / USD / GBP
   condition     vinyl_condition,
   store         text,                          -- where bought (shop / city)
-  -- Future (map): geocoded location of `store`, filled via Nominatim or a pin.
-  -- store_lat  double precision,
-  -- store_lng  double precision,
+  store_lat     double precision,              -- geocoded at entry (OSM/Photon)
+  store_lng     double precision,              -- → ready for the purchases map
   notes         text,
   unique (user_id, album_id)                   -- own an album once
 );
@@ -179,9 +178,10 @@ create policy "own collection" on collection_items
 - `wishlist` table (same shape as `collection_items` minus purchase fields) if
   we add a "want" list.
 - **Map of where records are bought** (OpenStreetMap + Leaflet, no API key):
-  add `store_lat`/`store_lng` to `collection_items`, geocode `store` via
-  Nominatim (or let the user drop a pin), then plot markers / a heatmap. The
-  free-text `store` we collect now bootstraps this later.
+  `store_lat`/`store_lng` are already captured at entry via the place
+  autocomplete (`/api/geocode` → Photon), so the map is just: plot the stored
+  coordinates as markers / a heatmap. Rows without coordinates (free-typed) can
+  be geocoded on demand later.
 
 ---
 
@@ -200,3 +200,5 @@ Changelog:
   purchase-history fields (date, price, currency, condition, notes).
 - 2026-08-23 — add `collection_items.store` (where bought); reserved
   `store_lat`/`store_lng` for a future OpenStreetMap purchases map.
+- 2026-08-23 — capture `store_lat`/`store_lng` at entry via place autocomplete
+  (`/api/geocode` → Photon/OSM); columns now populated, map-ready.

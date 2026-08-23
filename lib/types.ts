@@ -62,15 +62,25 @@ export interface CollectionItem extends Album {
   currency?: string;
   /** One of VINYL_CONDITIONS. */
   condition?: string;
-  /** Where it was bought — shop name and/or city (free text for now). */
+  /** Where it was bought — shop name and/or city. */
   store?: string;
+  /** Geocoded location of `store` (captured via place autocomplete) for the map. */
+  storeLat?: number;
+  storeLng?: number;
   notes?: string;
 }
 
 /** Editable purchase fields (everything except the album + addedAt). */
 export type PurchaseMeta = Pick<
   CollectionItem,
-  "acquiredDate" | "pricePaid" | "currency" | "condition" | "store" | "notes"
+  | "acquiredDate"
+  | "pricePaid"
+  | "currency"
+  | "condition"
+  | "store"
+  | "storeLat"
+  | "storeLng"
+  | "notes"
 >;
 
 export type SearchMode = "suggest" | "full";

@@ -2,6 +2,7 @@
 
 import { Album, CURRENCIES, VINYL_CONDITIONS } from "@/lib/types";
 import { useCollection } from "@/lib/useCollection";
+import StoreAutocomplete from "./StoreAutocomplete";
 
 const fieldClass =
   "bg-elevated w-full rounded-lg border border-hair px-3 py-2 text-[14px] outline-none focus:border-accent/50";
@@ -93,15 +94,10 @@ export default function PurchaseDetails({ album }: { album: Album }) {
           <label className={labelClass} htmlFor="pd-store">
             Bought at
           </label>
-          <input
-            id="pd-store"
-            type="text"
-            placeholder="Shop name and/or city…"
-            className={fieldClass}
+          <StoreAutocomplete
             value={item.store ?? ""}
-            onChange={(e) =>
-              update(album.id, { store: e.target.value || undefined })
-            }
+            hasCoords={item.storeLat != null && item.storeLng != null}
+            onChange={(meta) => update(album.id, meta)}
           />
         </div>
 
