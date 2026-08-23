@@ -135,7 +135,35 @@ export async function searchDiscogs(
   const artistItems = byArtist.status === "fulfilled" ? byArtist.value : [];
   const queryItems = byQuery.status === "fulfilled" ? byQuery.value : [];
 
-  return dedupeById([...artistItems, ...queryItems], perPage).map(mapSearchItem);
+  // Merge both lists, then rank by how well each album matches the query
+  // (exact > starts-with > contains). Ties keep Discogs' own order, since
+  // Array.prototype.sort is stable — so artist matches lead within a tier.
+  const merged = [...artistItems, ...queryItems];
+  const albums = dedupeById(merged, merged.length).map(mapSearchItem);
+  const q = query.trim().toLowerCase();
+  albums.sort((a, b) => relevanceScore(b, q) - relevanceScore(a, q));
+  return albums.slice(0, perPage);
+}
+
+/** Coarse relevance of an album to the query, matched on title and artist. */
+function relevanceScore(album: Album, q: string): number {
+  const strip = (s: string) => s.replace(/^the\s+/, "");
+  const qs = strip(q);
+  const field = (v: string) => {
+    const f = v.toLowerCase();
+    const fs = strip(f);
+    if (!f || !q) return 0;
+    if (f === q || fs === qs) return 100;
+    if (f.startsWith(q) || fs.startsWith(qs)) return 80;
+    if (f.includes(q)) return 55;
+    const tokens = q.split(/\s+/).filter(Boolean);
+    if (tokens.length > 1 && tokens.every((t) => f.includes(t))) return 40;
+    return 0;
+  };
+  const title = field(album.title);
+  const artist = field(album.artist);
+  // Best matching field wins; a small bonus when both match.
+  return Math.max(title, artist) + (title > 0 && artist > 0 ? 5 : 0);
 }
 
 /** All of an artist's vinyl albums (one canonical master row per album). */
