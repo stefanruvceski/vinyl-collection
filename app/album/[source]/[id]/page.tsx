@@ -102,7 +102,12 @@ export default async function AlbumPage({ params }: Params) {
         <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
           {album.title}
         </h1>
-        <p className="mt-1.5 text-xl font-medium text-accent">{album.artist}</p>
+        <Link
+          href={`/artist/${encodeURIComponent(album.artist)}`}
+          className="mt-1.5 inline-block text-xl font-medium text-accent hover:underline"
+        >
+          {album.artist}
+        </Link>
         <p className="mt-2 text-[13px] uppercase tracking-wide text-secondary">
           {[album.genres?.[0], album.year, album.format]
             .filter(Boolean)

@@ -120,6 +120,25 @@ export async function searchMusicBrainz(
   );
 }
 
+/** All of an artist's vinyl albums (deduped to one per release-group). */
+export async function searchMusicBrainzByArtist(
+  artist: string,
+  limit = 40,
+  signal?: AbortSignal
+): Promise<Album[]> {
+  const url = new URL(`${API}/release`);
+  url.searchParams.set("query", `artist:"${artist}" AND format:vinyl`);
+  url.searchParams.set("fmt", "json");
+  url.searchParams.set("limit", String(Math.min(100, Math.max(limit * 3, limit))));
+
+  const res = await fetch(url, { headers: headers(), signal });
+  if (!res.ok) throw new Error(`musicbrainz-artist-${res.status}`);
+  const data = (await res.json()) as { releases?: MbRelease[] };
+  return dedupeByReleaseGroup(data.releases ?? [], limit).map((r) =>
+    mapRelease(r)
+  );
+}
+
 /** One release per release-group (album), preserving relevance order. */
 function dedupeByReleaseGroup(items: MbRelease[], limit: number): MbRelease[] {
   const seen = new Set<string>();

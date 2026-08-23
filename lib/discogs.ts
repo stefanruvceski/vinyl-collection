@@ -114,6 +114,18 @@ export async function searchDiscogs(
   );
 }
 
+/** All of an artist's vinyl albums (deduped to one per master). */
+export async function searchDiscogsByArtist(
+  artist: string,
+  perPage = 40,
+  signal?: AbortSignal
+): Promise<Album[]> {
+  if (!discogsEnabled()) throw new Error("discogs-not-configured");
+  const count = Math.min(100, Math.max(perPage * 2, perPage));
+  const items = await runDiscogsSearch({ artist }, count, signal);
+  return dedupeByMaster(items, perPage).map(mapSearchItem);
+}
+
 /**
  * Collapse to one row per album: skip repeated release ids (the two searches
  * can overlap) and keep one pressing per master (master_id 0/undefined = a

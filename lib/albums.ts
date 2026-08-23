@@ -1,5 +1,14 @@
-import { discogsEnabled, getDiscogsRelease, searchDiscogs } from "./discogs";
-import { getMusicBrainzRelease, searchMusicBrainz } from "./musicbrainz";
+import {
+  discogsEnabled,
+  getDiscogsRelease,
+  searchDiscogs,
+  searchDiscogsByArtist,
+} from "./discogs";
+import {
+  getMusicBrainzRelease,
+  searchMusicBrainz,
+  searchMusicBrainzByArtist,
+} from "./musicbrainz";
 import { Album, AlbumSource, SearchMode, SearchResponse } from "./types";
 
 /**
@@ -102,4 +111,24 @@ export async function getAlbum(
     return getMusicBrainzRelease(id);
   }
   return null;
+}
+
+/** All vinyl albums by an artist: Discogs primary, MusicBrainz fallback. */
+export async function getArtistAlbums(name: string): Promise<Album[]> {
+  const q = name.trim();
+  if (!q) return [];
+
+  if (discogsEnabled()) {
+    try {
+      const albums = await searchDiscogsByArtist(q);
+      if (albums.length) return albums;
+    } catch {
+      // fall through to MusicBrainz
+    }
+  }
+  try {
+    return await searchMusicBrainzByArtist(q);
+  } catch {
+    return [];
+  }
 }
