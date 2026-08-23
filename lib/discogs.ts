@@ -303,10 +303,13 @@ interface DiscogsMaster {
 
 function mapMaster(m: DiscogsMaster): Album {
   const cover = m.images?.[0]?.uri;
+  // Identify masters as "m<id>" (same scheme as mapSearchItem) so getAlbum
+  // routes them back to getDiscogsMaster — a bare id would be read as a release.
+  const rawId = `m${m.id}`;
   return {
-    id: albumKey("discogs", m.id),
+    id: albumKey("discogs", rawId),
     source: "discogs",
-    sourceId: String(m.id),
+    sourceId: rawId,
     title: cleanTitle(m.title),
     artist: cleanArtist(m.artists?.map((a) => a.name).join(", ") || ""),
     year: m.year || undefined,
