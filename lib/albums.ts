@@ -1,6 +1,7 @@
 import {
   discogsEnabled,
   getDiscogsMaster,
+  getDiscogsRelease,
   searchDiscogs,
   searchDiscogsByArtist,
 } from "./discogs";
@@ -105,7 +106,10 @@ export async function getAlbum(
 ): Promise<Album | null> {
   if (source === "discogs") {
     if (!discogsEnabled()) return null;
-    return getDiscogsMaster(id);
+    // "m<id>" identifies a master (album); a bare id is a standalone release.
+    return id.startsWith("m")
+      ? getDiscogsMaster(id.slice(1))
+      : getDiscogsRelease(id);
   }
   if (source === "musicbrainz") {
     return getMusicBrainzRelease(id);
