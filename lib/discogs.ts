@@ -67,45 +67,72 @@ function mapSearchItem(item: DiscogsSearchItem): Album {
   };
 }
 
+/** One Discogs vinyl-release search with the given params. Over-fetches. */
+async function runDiscogsSearch(
+  params: Record<string, string>,
+  count: number,
+  signal?: AbortSignal
+): Promise<DiscogsSearchItem[]> {
+  const url = new URL(`${API}/database/search`);
+  url.searchParams.set("type", "release");
+  url.searchParams.set("format", "Vinyl");
+  url.searchParams.set("per_page", String(count));
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+
+  const res = await fetch(url, { headers: headers(), signal });
+  if (!res.ok) throw new Error(`discogs-search-${res.status}`);
+  const data = (await res.json()) as { results?: DiscogsSearchItem[] };
+  return data.results ?? [];
+}
+
 export async function searchDiscogs(
   query: string,
   perPage = 12,
   signal?: AbortSignal
 ): Promise<Album[]> {
   if (!discogsEnabled()) throw new Error("discogs-not-configured");
-  const url = new URL(`${API}/database/search`);
-  url.searchParams.set("q", query);
-  url.searchParams.set("type", "release");
-  url.searchParams.set("format", "Vinyl");
-  // Discogs returns one row per pressing, so many rows share the same album
-  // (master). Over-fetch, then collapse to one per master, to fill `perPage`
-  // with distinct albums.
-  const fetchCount = Math.min(100, Math.max(perPage * 5, perPage));
-  url.searchParams.set("per_page", String(fetchCount));
+  // Discogs returns one row per pressing, so over-fetch and later collapse to
+  // one per master (album).
+  const count = Math.min(100, Math.max(perPage * 5, perPage));
 
-  const res = await fetch(url, { headers: headers(), signal });
-  if (!res.ok) throw new Error(`discogs-search-${res.status}`);
-  const data = (await res.json()) as { results?: DiscogsSearchItem[] };
-  return dedupeByMaster(data.results ?? [], perPage).map(mapSearchItem);
+  // Search the query as an ARTIST and as a general term (title + everything) in
+  // parallel, so typing "Weeknd" returns the artist's own albums alongside any
+  // album whose name matches — the artist's records are listed first.
+  const [byArtist, byQuery] = await Promise.allSettled([
+    runDiscogsSearch({ artist: query }, count, signal),
+    runDiscogsSearch({ q: query }, count, signal),
+  ]);
+
+  if (byArtist.status === "rejected" && byQuery.status === "rejected") {
+    throw byArtist.reason; // both failed → let the orchestrator fall back
+  }
+  const artistItems = byArtist.status === "fulfilled" ? byArtist.value : [];
+  const queryItems = byQuery.status === "fulfilled" ? byQuery.value : [];
+
+  return dedupeByMaster([...artistItems, ...queryItems], perPage).map(
+    mapSearchItem
+  );
 }
 
 /**
- * Keep one pressing per master (album), preserving Discogs' relevance order.
- * Pressings without a master (master_id 0/undefined) are all kept — they're
- * distinct standalone releases. Stops once `limit` distinct albums are picked.
+ * Collapse to one row per album: skip repeated release ids (the two searches
+ * can overlap) and keep one pressing per master (master_id 0/undefined = a
+ * standalone release, kept as-is), preserving order. Stops at `limit` albums.
  */
 function dedupeByMaster(
   items: DiscogsSearchItem[],
   limit: number
 ): DiscogsSearchItem[] {
-  const seen = new Set<number>();
+  const seenMaster = new Set<number>();
+  const seenId = new Set<number>();
   const picked: DiscogsSearchItem[] = [];
   for (const r of items) {
-    if (!r.id || !r.title) continue;
+    if (!r.id || !r.title || seenId.has(r.id)) continue;
+    seenId.add(r.id);
     const master = r.master_id ?? 0;
     if (master > 0) {
-      if (seen.has(master)) continue;
-      seen.add(master);
+      if (seenMaster.has(master)) continue;
+      seenMaster.add(master);
     }
     picked.push(r);
     if (picked.length >= limit) break;
