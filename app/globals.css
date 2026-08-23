@@ -48,27 +48,35 @@ body {
   border-color: var(--border);
 }
 
-/* CSS-drawn vinyl record (no images): concentric grooves + a soft sheen. */
+/* Picture disc: the album art is pressed onto the record (clipped to a circle).
+   .vinyl-disc is the round container (drop shadow + faint rim). */
 .vinyl-disc {
-  background-color: #0b0b0d;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.32),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Groove/sheen overlay laid OVER the album art so it still reads as vinyl:
+   thin concentric grooves + a soft top-left sheen + a darker edge vignette. */
+.vinyl-grooves {
   background-image:
     repeating-radial-gradient(
       circle at 50% 50%,
-      rgba(255, 255, 255, 0.05) 0px,
-      rgba(255, 255, 255, 0.05) 1px,
-      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0.14) 0px,
+      rgba(0, 0, 0, 0.14) 1px,
+      rgba(255, 255, 255, 0.06) 1px,
+      rgba(255, 255, 255, 0.06) 2px,
+      rgba(0, 0, 0, 0) 2px,
       rgba(0, 0, 0, 0) 3px
     ),
     radial-gradient(
-      circle at 34% 28%,
-      rgba(255, 255, 255, 0.18),
-      rgba(255, 255, 255, 0) 44%
+      circle at 32% 26%,
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0) 42%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(0, 0, 0, 0) 58%,
+      rgba(0, 0, 0, 0.32) 100%
     );
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.32),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-.vinyl-label {
-  background: var(--accent);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
