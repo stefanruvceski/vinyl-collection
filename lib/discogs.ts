@@ -31,6 +31,47 @@ function splitTitle(raw: string): { artist: string; title: string } {
   };
 }
 
+/** CJK / Hangul / Kana ranges — used to spot localized (e.g. Asian) pressings. */
+const NON_LATIN =
+  /[぀-ヿ㐀-䶿一-鿿가-힯＀-￯]/;
+
+/**
+ * Discogs joins an original title with its local translation using " = " on
+ * localized releases (e.g. "Dawn FM = 黎明电台"). Keep the original side.
+ */
+function cleanTitle(s: string): string {
+  return s.split(" = ")[0].trim() || s.trim();
+}
+
+/**
+ * Clean a Discogs artist string: drop the "= <translation>" half, the ANV "*"
+ * suffix and the "(2)" disambiguation number, and collapse duplicates
+ * ("The Weeknd, The Weeknd" → "The Weeknd").
+ */
+function cleanArtist(s: string): string {
+  const parts = s
+    .split(", ")
+    .map((a) =>
+      a
+        .split(" = ")[0]
+        .replace(/\s*\(\d+\)$/, "")
+        .replace(/\*+$/, "")
+        .trim()
+    )
+    .filter(Boolean);
+  return Array.from(new Set(parts)).join(", ");
+}
+
+/** Stable-partition so localized (non-Latin) titles come last, keeping order. */
+function preferLatin(items: DiscogsSearchItem[]): DiscogsSearchItem[] {
+  const latin: DiscogsSearchItem[] = [];
+  const other: DiscogsSearchItem[] = [];
+  for (const r of items) {
+    (NON_LATIN.test(r.title || "") ? other : latin).push(r);
+  }
+  return [...latin, ...other];
+}
+
 interface DiscogsSearchItem {
   id: number;
   /** Id of the "master" (the album) this pressing belongs to; 0/undefined if none. */
@@ -53,8 +94,8 @@ function mapSearchItem(item: DiscogsSearchItem): Album {
     id: albumKey("discogs", item.id),
     source: "discogs",
     sourceId: String(item.id),
-    title,
-    artist,
+    title: cleanTitle(title),
+    artist: cleanArtist(artist),
     year: item.year ? Number(item.year) || undefined : undefined,
     format: item.format?.join(", "),
     label: item.label?.[0],
@@ -109,7 +150,7 @@ export async function searchDiscogs(
   const artistItems = byArtist.status === "fulfilled" ? byArtist.value : [];
   const queryItems = byQuery.status === "fulfilled" ? byQuery.value : [];
 
-  return dedupeByMaster([...artistItems, ...queryItems], perPage).map(
+  return dedupeByMaster(preferLatin([...artistItems, ...queryItems]), perPage).map(
     mapSearchItem
   );
 }
@@ -123,7 +164,7 @@ export async function searchDiscogsByArtist(
   if (!discogsEnabled()) throw new Error("discogs-not-configured");
   const count = Math.min(100, Math.max(perPage * 2, perPage));
   const items = await runDiscogsSearch({ artist }, count, signal);
-  return dedupeByMaster(items, perPage).map(mapSearchItem);
+  return dedupeByMaster(preferLatin(items), perPage).map(mapSearchItem);
 }
 
 /**
@@ -168,7 +209,7 @@ interface DiscogsRelease {
 }
 
 function mapRelease(r: DiscogsRelease): Album {
-  const artist = r.artists?.map((a) => a.name).join(", ") || "";
+  const artist = cleanArtist(r.artists?.map((a) => a.name).join(", ") || "");
   const fmt = r.formats
     ?.map((f) => [f.name, ...(f.descriptions ?? [])].join(", "))
     .join(" / ");
@@ -182,7 +223,7 @@ function mapRelease(r: DiscogsRelease): Album {
     id: albumKey("discogs", r.id),
     source: "discogs",
     sourceId: String(r.id),
-    title: r.title,
+    title: cleanTitle(r.title),
     artist,
     year: r.year || undefined,
     format: fmt,
