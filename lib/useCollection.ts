@@ -1,24 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Album } from "./types";
+import { Album, CollectionItem, PurchaseMeta } from "./types";
 
 const STORAGE_KEY = "vinyl-collection";
 const EVENT = "vinyl-collection:changed";
 
-function readStore(): Album[] {
+function readStore(): CollectionItem[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Album[]) : [];
+    return Array.isArray(parsed) ? (parsed as CollectionItem[]) : [];
   } catch {
     return [];
   }
 }
 
-function writeStore(items: Album[]): void {
+function writeStore(items: CollectionItem[]): void {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     // Obavesti druge instance hooka u istom tabu.
@@ -33,7 +33,7 @@ function writeStore(items: Album[]): void {
  * SSR-safe: pocetno prazno, ucita se u useEffect da bi hydration prosao cist.
  */
 export function useCollection() {
-  const [items, setItems] = useState<Album[]>([]);
+  const [items, setItems] = useState<CollectionItem[]>([]);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -50,10 +50,15 @@ export function useCollection() {
     };
   }, []);
 
-  const add = useCallback((album: Album) => {
+  const add = useCallback((album: Album, meta?: PurchaseMeta) => {
     setItems((prev) => {
       if (prev.some((a) => a.id === album.id)) return prev;
-      const next = [album, ...prev];
+      const item: CollectionItem = {
+        ...album,
+        addedAt: new Date().toISOString(),
+        ...meta,
+      };
+      const next = [item, ...prev];
       writeStore(next);
       return next;
     });
@@ -67,8 +72,22 @@ export function useCollection() {
     });
   }, []);
 
+  /** Merge purchase metadata into an existing item. */
+  const update = useCallback((id: string, meta: PurchaseMeta) => {
+    setItems((prev) => {
+      const next = prev.map((a) => (a.id === id ? { ...a, ...meta } : a));
+      writeStore(next);
+      return next;
+    });
+  }, []);
+
   const has = useCallback(
     (id: string) => items.some((a) => a.id === id),
+    [items]
+  );
+
+  const get = useCallback(
+    (id: string) => items.find((a) => a.id === id),
     [items]
   );
 
@@ -80,5 +99,5 @@ export function useCollection() {
     [items, add, remove]
   );
 
-  return { items, ready, add, remove, toggle, has };
+  return { items, ready, add, remove, update, has, get, toggle };
 }

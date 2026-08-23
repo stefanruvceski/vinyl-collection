@@ -65,6 +65,12 @@ export default function RootLayout({
                 >
                   My collection
                 </Link>
+                <Link
+                  href="/history"
+                  className="transition-colors hover:text-accent"
+                >
+                  History
+                </Link>
               </nav>
             </div>
           </header>

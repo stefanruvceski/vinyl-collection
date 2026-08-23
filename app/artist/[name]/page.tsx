@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import AlbumCard from "@/components/AlbumCard";
+import ArtistAlbumList from "@/components/ArtistAlbumList";
 import { getArtistAlbums } from "@/lib/albums";
 import { siteConfig } from "@/lib/site";
 
@@ -49,11 +49,7 @@ export default async function ArtistPage({ params }: Params) {
           <p className="mb-6 mt-1 text-[14px] text-secondary">
             {albums.length} {albums.length === 1 ? "album" : "albums"}
           </p>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {albums.map((album) => (
-              <AlbumCard key={album.id} album={album} />
-            ))}
-          </div>
+          <ArtistAlbumList albums={albums} />
         </>
       ) : (
         <p className="mt-6 text-[15px] text-secondary">

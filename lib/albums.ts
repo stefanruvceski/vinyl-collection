@@ -4,6 +4,7 @@ import {
   getDiscogsRelease,
   searchDiscogs,
   searchDiscogsByArtist,
+  searchDiscogsByGenre,
 } from "./discogs";
 import {
   getMusicBrainzRelease,
@@ -135,4 +136,44 @@ export async function getArtistAlbums(name: string): Promise<Album[]> {
   } catch {
     return [];
   }
+}
+
+export interface RecSection {
+  title: string;
+  albums: Album[];
+}
+
+/**
+ * Recommendations seeded from the user's collection: more from a couple of
+ * their artists, and more in a couple of their genres. Discogs-only (there is
+ * no trending endpoint, so this is derived from existing searches).
+ */
+export async function getRecommendations(seeds: {
+  artists?: string[];
+  genres?: string[];
+}): Promise<RecSection[]> {
+  if (!discogsEnabled()) return [];
+  const artists = (seeds.artists ?? []).slice(0, 2);
+  const genres = (seeds.genres ?? []).slice(0, 2);
+
+  const tasks: Promise<RecSection | null>[] = [
+    ...artists.map(async (a): Promise<RecSection | null> => {
+      try {
+        const albums = await searchDiscogsByArtist(a, 12);
+        return albums.length ? { title: `More from ${a}`, albums } : null;
+      } catch {
+        return null;
+      }
+    }),
+    ...genres.map(async (g): Promise<RecSection | null> => {
+      try {
+        const albums = await searchDiscogsByGenre(g, 12);
+        return albums.length ? { title: `More ${g}`, albums } : null;
+      } catch {
+        return null;
+      }
+    }),
+  ];
+
+  return (await Promise.all(tasks)).filter((s): s is RecSection => s !== null);
 }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CollectionButton from "@/components/CollectionButton";
 import JsonLd from "@/components/JsonLd";
+import PurchaseDetails from "@/components/PurchaseDetails";
 import VinylArtwork from "@/components/VinylArtwork";
 import { getAlbum } from "@/lib/albums";
 import { siteConfig } from "@/lib/site";
@@ -127,26 +128,51 @@ export default async function AlbumPage({ params }: Params) {
         </div>
       </div>
 
+      <PurchaseDetails album={album} />
+
       {album.tracklist?.length ? (
         <section className="mt-12">
           <h2 className="mb-1 text-[22px] font-bold tracking-tight">Tracklist</h2>
+          <p className="mb-1 text-[13px] text-secondary">
+            Tap a track to find it on YouTube Music.
+          </p>
           <ol>
-            {album.tracklist.map((t, i) => (
-              <li
-                key={i}
-                className="flex items-center gap-4 border-b border-hair py-3 text-[15px]"
-              >
-                <span className="w-6 shrink-0 text-right text-secondary">
-                  {t.position || i + 1}
-                </span>
-                <span className="min-w-0 flex-1 truncate">{t.title}</span>
-                {t.duration && (
-                  <span className="shrink-0 tabular-nums text-secondary">
-                    {t.duration}
-                  </span>
-                )}
-              </li>
-            ))}
+            {album.tracklist.map((t, i) => {
+              const ytm = `https://music.youtube.com/search?q=${encodeURIComponent(
+                `${album.artist} ${t.title}`
+              )}`;
+              return (
+                <li key={i} className="border-b border-hair">
+                  <a
+                    href={ytm}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`Find "${album.artist} – ${t.title}" on YouTube Music`}
+                    className="group flex items-center gap-4 py-3 text-[15px] transition-colors hover:text-accent"
+                  >
+                    <span className="w-6 shrink-0 text-right text-secondary group-hover:text-accent">
+                      {t.position || i + 1}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate">{t.title}</span>
+                    {t.duration && (
+                      <span className="shrink-0 tabular-nums text-secondary">
+                        {t.duration}
+                      </span>
+                    )}
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="shrink-0 text-secondary transition-colors group-hover:text-accent"
+                      aria-hidden="true"
+                    >
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </a>
+                </li>
+              );
+            })}
           </ol>
         </section>
       ) : null}
