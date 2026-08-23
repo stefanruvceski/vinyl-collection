@@ -65,44 +65,57 @@ export default function SearchBar() {
 
   return (
     <div className="w-full">
-      <div className="relative">
+      <div className="relative mx-auto max-w-xl">
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-secondary">
+          {loading ? (
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          ) : (
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.2-3.2" />
+            </svg>
+          )}
+        </span>
         <input
           type="search"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Search album or artist (e.g. born to die)…"
+          placeholder="Artists, albums…"
           aria-label="Album search"
           autoComplete="off"
-          className="w-full rounded-lg border border-wax-border bg-wax-card px-4 py-3 pr-11 text-base outline-none placeholder:text-neutral-500 focus:border-wax-gold"
+          className="bg-field w-full rounded-2xl border border-transparent py-3.5 pl-11 pr-4 text-[15px] outline-none transition-shadow placeholder:text-secondary focus:border-accent/40 focus:ring-4 focus:ring-accent/10"
         />
-        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500">
-          {loading ? (
-            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-wax-gold border-t-transparent" />
-          ) : (
-            "🔍"
-          )}
-        </span>
       </div>
 
-      <div className="mt-2 min-h-[1.25rem] text-sm text-neutral-500">
+      <div className="mx-auto mt-2.5 min-h-[1.25rem] max-w-xl px-1 text-[13px] text-secondary">
         {tooShort && <span>Type at least {MIN_CHARS} characters…</span>}
         {!tooShort && searched && source && results.length > 0 && (
           <span>
-            Results from source:{" "}
-            <span className="text-neutral-300">{source}</span>
+            Results from <span className="capitalize text-accent">{source}</span>
           </span>
         )}
-        {error && <span className="text-red-400">{error}</span>}
+        {error && <span className="text-accent">{error}</span>}
       </div>
 
-      <div className="mt-3 grid gap-3">
-        {results.map((album) => (
-          <AlbumCard key={album.id} album={album} />
-        ))}
-      </div>
+      {results.length > 0 && (
+        <div className="mt-6 grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {results.map((album) => (
+            <AlbumCard key={album.id} album={album} />
+          ))}
+        </div>
+      )}
 
       {searched && !loading && results.length === 0 && !error && (
-        <p className="mt-6 text-center text-neutral-500">
+        <p className="mt-10 text-center text-[15px] text-secondary">
           No results for “{debounced.trim()}”.
         </p>
       )}

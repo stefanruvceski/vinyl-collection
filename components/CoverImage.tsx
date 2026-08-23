@@ -21,12 +21,12 @@ export default function CoverImage({
     return (
       <div
         className={
-          "flex items-center justify-center bg-wax-border text-2xl text-neutral-500 " +
+          "bg-elevated flex items-center justify-center text-3xl text-secondary " +
           className
         }
         aria-hidden="true"
       >
-        💿
+        ♫
       </div>
     );
   }

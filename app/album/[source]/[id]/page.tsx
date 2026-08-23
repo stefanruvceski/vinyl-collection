@@ -88,54 +88,63 @@ export default async function AlbumPage({ params }: Params) {
   ].filter(([, v]) => Boolean(v)) as [string, string][];
 
   return (
-    <article className="py-2">
+    <article className="mx-auto max-w-3xl">
       <JsonLd data={musicAlbumLd} />
 
       <Link
         href="/"
-        className="text-sm text-neutral-500 hover:text-neutral-300"
+        className="text-[13px] text-secondary transition-colors hover:text-accent"
       >
         ← Back to search
       </Link>
 
-      <div className="mt-4 flex flex-col gap-5 sm:flex-row">
-        <CoverImage
-          src={album.coverImage || album.thumb}
-          alt={`${album.artist} – ${album.title}`}
-          className="h-48 w-48 shrink-0 rounded-lg"
-        />
+      <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-end sm:gap-8">
+        <div className="mx-auto w-56 shrink-0 overflow-hidden rounded-xl2 shadow-cover sm:mx-0">
+          <div className="aspect-square bg-elevated">
+            <CoverImage
+              src={album.coverImage || album.thumb}
+              alt={`${album.artist} – ${album.title}`}
+              className="h-full w-full"
+            />
+          </div>
+        </div>
 
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold leading-tight">{album.title}</h1>
-          <p className="mt-1 text-lg text-neutral-400">{album.artist}</p>
+        <div className="min-w-0 flex-1 text-center sm:text-left">
+          <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+            {album.title}
+          </h1>
+          <p className="mt-1.5 text-xl font-medium text-accent">
+            {album.artist}
+          </p>
+          <p className="mt-2 text-[13px] uppercase tracking-wide text-secondary">
+            {[album.genres?.[0], album.year, album.format]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
 
-          <div className="mt-4">
+          <div className="mt-5">
             <CollectionButton album={album} />
           </div>
         </div>
       </div>
 
-      <dl className="mt-6 grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
-        {meta.map(([k, v]) => (
-          <div key={k} className="flex justify-between border-b border-wax-border py-1.5 text-sm">
-            <dt className="text-neutral-500">{k}</dt>
-            <dd className="ml-4 text-right text-neutral-200">{v}</dd>
-          </div>
-        ))}
-      </dl>
-
       {album.tracklist?.length ? (
-        <section className="mt-8">
-          <h2 className="mb-3 text-lg font-semibold">Tracklist</h2>
-          <ol className="divide-y divide-wax-border">
+        <section className="mt-12">
+          <h2 className="mb-1 text-[22px] font-bold tracking-tight">Tracklist</h2>
+          <ol>
             {album.tracklist.map((t, i) => (
-              <li key={i} className="flex items-center gap-3 py-2 text-sm">
-                <span className="w-8 shrink-0 text-neutral-500">
+              <li
+                key={i}
+                className="flex items-center gap-4 border-b border-hair py-3 text-[15px]"
+              >
+                <span className="w-6 shrink-0 text-right text-secondary">
                   {t.position || i + 1}
                 </span>
                 <span className="min-w-0 flex-1 truncate">{t.title}</span>
                 {t.duration && (
-                  <span className="shrink-0 text-neutral-500">{t.duration}</span>
+                  <span className="shrink-0 tabular-nums text-secondary">
+                    {t.duration}
+                  </span>
                 )}
               </li>
             ))}
@@ -143,14 +152,29 @@ export default async function AlbumPage({ params }: Params) {
         </section>
       ) : null}
 
+      <section className="mt-12">
+        <h2 className="mb-1 text-[22px] font-bold tracking-tight">Details</h2>
+        <dl>
+          {meta.map(([k, v]) => (
+            <div
+              key={k}
+              className="flex justify-between gap-4 border-b border-hair py-3 text-[15px]"
+            >
+              <dt className="text-secondary">{k}</dt>
+              <dd className="text-right">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
       {album.sourceUrl && (
-        <p className="mt-8 text-xs text-neutral-600">
+        <p className="mt-8 text-[12px] text-secondary">
           Data source:{" "}
           <a
             href={album.sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-neutral-400"
+            className="underline hover:text-accent"
           >
             {album.source === "discogs" ? "Discogs" : "MusicBrainz"}
           </a>

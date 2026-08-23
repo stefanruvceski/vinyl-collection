@@ -9,8 +9,10 @@ export const metadata: Metadata = {
 
 export default function CollectionPage() {
   return (
-    <div className="py-2">
-      <h1 className="mb-4 text-2xl font-bold tracking-tight">My collection</h1>
+    <div>
+      <h1 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl">
+        My collection
+      </h1>
       <CollectionList />
     </div>
   );

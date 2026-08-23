@@ -8,16 +8,16 @@ export default function CollectionList() {
   const { items, ready } = useCollection();
 
   if (!ready) {
-    return <p className="py-10 text-center text-neutral-500">Loading…</p>;
+    return <p className="py-16 text-center text-[15px] text-secondary">Loading…</p>;
   }
 
   if (items.length === 0) {
     return (
-      <div className="py-12 text-center">
-        <p className="text-neutral-400">Your collection is empty.</p>
+      <div className="py-20 text-center">
+        <p className="text-[15px] text-secondary">Your collection is empty.</p>
         <Link
           href="/"
-          className="mt-3 inline-block rounded-md bg-wax-gold px-4 py-2 text-sm font-medium text-black hover:bg-wax-gold/90"
+          className="mt-5 inline-flex rounded-full bg-accent px-5 py-2.5 text-[15px] font-medium text-white transition-colors hover:bg-accent-hover"
         >
           Search and add your first record
         </Link>
@@ -27,10 +27,10 @@ export default function CollectionList() {
 
   return (
     <div>
-      <p className="mb-4 text-sm text-neutral-500">
-        {items.length} {items.length === 1 ? "record" : "records"} in collection
+      <p className="mb-6 text-[14px] text-secondary">
+        {items.length} {items.length === 1 ? "record" : "records"}
       </p>
-      <div className="grid gap-3">
+      <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {items.map((album) => (
           <AlbumCard key={album.id} album={album} />
         ))}

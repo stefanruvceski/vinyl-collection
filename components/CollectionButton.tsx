@@ -20,14 +20,47 @@ export default function CollectionButton({
       disabled={!ready}
       aria-pressed={owned}
       className={
-        "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 " +
+        "inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[15px] font-medium transition-colors disabled:opacity-50 " +
         (owned
-          ? "bg-wax-gold/15 text-wax-gold hover:bg-wax-gold/25"
-          : "bg-wax-gold text-black hover:bg-wax-gold/90") +
+          ? "bg-elevated border border-hair text-secondary hover:text-accent"
+          : "bg-accent text-white hover:bg-accent-hover") +
         (className ? " " + className : "")
       }
     >
-      {owned ? "✅ Owned — remove" : "➕ Add to collection"}
+      {owned ? (
+        <>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+          In your collection
+        </>
+      ) : (
+        <>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Add to collection
+        </>
+      )}
     </button>
   );
 }
