@@ -61,7 +61,7 @@ export default function PurchaseHistory() {
           {totals.size > 0 && (
             <p>
               Total spent:{" "}
-              <span className="font-medium text-accent">
+              <span className="font-semibold text-[var(--text)]">
                 {[...totals].map(([c, v]) => `${fmt(v)} ${c}`).join(" · ")}
               </span>
             </p>
@@ -69,7 +69,7 @@ export default function PurchaseHistory() {
           {topStores.length > 0 && (
             <p>
               You buy most at:{" "}
-              <span className="font-medium text-accent">
+              <span className="font-semibold text-[var(--text)]">
                 {topStores.map(([s, n]) => `${s} (${n})`).join(" · ")}
               </span>
             </p>
