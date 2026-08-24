@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { siteConfig } from "@/lib/site";
+import VinylLogo from "@/components/VinylLogo";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -52,7 +53,7 @@ export default function RootLayout({
                 href="/"
                 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight"
               >
-                <span className="text-accent">●</span>
+                <VinylLogo className="h-[19px] w-[19px]" />
                 {siteConfig.name}
               </Link>
               <nav className="flex items-center gap-4 text-[13px] font-medium text-secondary sm:gap-6 sm:text-[14px]">
