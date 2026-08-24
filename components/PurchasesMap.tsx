@@ -3,7 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import type { LayerGroup, Map as LeafletMap } from "leaflet";
+import type { LayerGroup, Map as LeafletMap, TileLayer } from "leaflet";
 import { useCollection } from "@/lib/useCollection";
 import { CollectionItem } from "@/lib/types";
 
@@ -12,6 +12,20 @@ interface Spot {
   lng: number;
   name: string;
   count: number;
+}
+
+// Free, no-key CARTO basemaps (OpenStreetMap data) — dark or light per theme.
+const tileUrl = (dark: boolean) =>
+  `https://{s}.basemaps.cartocdn.com/${dark ? "dark_all" : "light_all"}/{z}/{x}/{y}.png`;
+
+const TILE_ATTR =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+
+function prefersDark(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    !!window.matchMedia?.("(prefers-color-scheme: dark)").matches
+  );
 }
 
 function spotsOf(items: CollectionItem[]): Spot[] {
@@ -37,6 +51,7 @@ export default function PurchasesMap() {
   const elRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<LayerGroup | null>(null);
+  const tileRef = useRef<TileLayer | null>(null);
 
   const spots = useMemo(() => (ready ? spotsOf(items) : []), [ready, items]);
 
@@ -50,8 +65,9 @@ export default function PurchasesMap() {
 
       if (!mapRef.current) {
         mapRef.current = L.map(elRef.current).setView([20, 0], 2);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: "&copy; OpenStreetMap contributors",
+        tileRef.current = L.tileLayer(tileUrl(prefersDark()), {
+          attribution: TILE_ATTR,
+          subdomains: "abcd",
           maxZoom: 19,
         }).addTo(mapRef.current);
       }
@@ -84,12 +100,22 @@ export default function PurchasesMap() {
     };
   }, [ready, spots]);
 
+  // Swap the basemap when the system theme changes.
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => tileRef.current?.setUrl(tileUrl(mq.matches));
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
   // Tear the map down on unmount.
   useEffect(() => {
     return () => {
       mapRef.current?.remove();
       mapRef.current = null;
       markersRef.current = null;
+      tileRef.current = null;
     };
   }, []);
 
