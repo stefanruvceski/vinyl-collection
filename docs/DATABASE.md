@@ -202,3 +202,5 @@ Changelog:
   `store_lat`/`store_lng` for a future OpenStreetMap purchases map.
 - 2026-08-23 — capture `store_lat`/`store_lng` at entry via place autocomplete
   (`/api/geocode` → Photon/OSM); columns now populated, map-ready.
+- 2026-08-23 — `/map` page (Leaflet + OpenStreetMap) plots `store_lat`/`store_lng`
+  as pins; no schema change (consumes existing columns).

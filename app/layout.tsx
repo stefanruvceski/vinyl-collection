@@ -55,7 +55,7 @@ export default function RootLayout({
                 <span className="text-accent">●</span>
                 {siteConfig.name}
               </Link>
-              <nav className="flex items-center gap-6 text-[14px] font-medium text-secondary">
+              <nav className="flex items-center gap-4 text-[13px] font-medium text-secondary sm:gap-6 sm:text-[14px]">
                 <Link href="/" className="transition-colors hover:text-accent">
                   Search
                 </Link>
@@ -63,13 +63,19 @@ export default function RootLayout({
                   href="/collection"
                   className="transition-colors hover:text-accent"
                 >
-                  My collection
+                  Collection
                 </Link>
                 <Link
                   href="/history"
                   className="transition-colors hover:text-accent"
                 >
                   History
+                </Link>
+                <Link
+                  href="/map"
+                  className="transition-colors hover:text-accent"
+                >
+                  Map
                 </Link>
               </nav>
             </div>
