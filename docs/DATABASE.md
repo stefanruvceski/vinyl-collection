@@ -202,3 +202,11 @@ Changelog:
   `store_lat`/`store_lng` for a future OpenStreetMap purchases map.
 - 2026-08-23 — capture `store_lat`/`store_lng` at entry via place autocomplete
   (`/api/geocode` → Photon/OSM); columns now populated, map-ready.
+- 2026-08-25 — read-only collection **sharing** via a link (`/shared#c=…`). No
+  schema change: the shared albums are packed (lz-string) into the URL hash
+  client-side. Only public album fields + `condition` are shared; price, store,
+  coordinates, notes and exact acquisition date are intentionally excluded.
+  Future Supabase version: replace the URL payload with a `shares` table
+  (`id uuid`, `user_id`, `created_at`, optional `name`/`expires_at`) resolved by
+  a public, read-only query projecting `albums` + `collection_items.condition`
+  only (never the private purchase columns) under a dedicated RLS policy.
