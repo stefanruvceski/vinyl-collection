@@ -51,6 +51,33 @@ better (vinyl-specific) results, add a free Discogs token.
 | `DISCOGS_TOKEN` | Discogs personal token (optional; without it MusicBrainz is used). |
 | `MUSICBRAINZ_USER_AGENT` | MusicBrainz requires a descriptive User-Agent with a contact. |
 | `NEXT_PUBLIC_SITE_URL` | Base site URL (for SEO metadata, sitemap, OG tags). |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL (optional; enables sign-in + sync). |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key (public, safe in the browser; RLS protects data). |
+
+### Accounts & sync (optional, Supabase)
+
+Sign-in is **optional** — without Supabase env vars the app runs in guest mode
+and the collection stays in `localStorage`, exactly as before. With Supabase
+configured, users sign in by **email one-time code** (no password) and their
+collection syncs across devices. On first sign-in, any guest `localStorage`
+collection is imported into the account once.
+
+Set it up:
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. **SQL Editor → New query** → paste [`supabase/schema.sql`](supabase/schema.sql) → **Run**
+   (creates the tables, Row Level Security, and a trigger that makes a `profiles`
+   row for each new user).
+3. **Authentication → Providers → Email**: enable it. To receive a **code**
+   (not a magic link), edit **Authentication → Email Templates → Magic Link** and
+   make sure the body includes the token, e.g. `Your code is {{ .Token }}`.
+4. **Authentication → URL Configuration**: set the Site URL to your domain
+   (e.g. `https://vinyl.ruvceski.com`) and add `http://localhost:3000` for local dev.
+5. **Project Settings → API**: copy the **Project URL** and **anon public** key
+   into `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` (locally in
+   `.env.local`, and in your Vercel project's environment variables), then redeploy.
+
+The data model is documented in [`docs/DATABASE.md`](docs/DATABASE.md).
 
 ## How it works
 
