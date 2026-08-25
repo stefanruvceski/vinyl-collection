@@ -1,8 +1,11 @@
 # Database schema (planned — Supabase / Postgres)
 
-**Status: not implemented yet.** The app currently stores the collection in the
-browser's `localStorage` (no auth, no DB). This file is the ready-to-run design
-for when we move to **Supabase**. Keep it in sync with the code — see
+**Status: implemented, env-gated.** When `NEXT_PUBLIC_SUPABASE_URL` /
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` are set, signed-in users read/write their
+collection here (with a one-time import of any guest `localStorage` data);
+without those env vars the app runs in guest mode on `localStorage` exactly as
+before. The runnable schema lives in [`supabase/schema.sql`](../supabase/schema.sql)
+(this doc is the annotated version). Keep both in sync with the code — see
 [Maintenance](#maintenance) at the bottom.
 
 The shapes here mirror `lib/types.ts` (`Album`, `CollectionItem`) and the
@@ -202,3 +205,9 @@ Changelog:
   `store_lat`/`store_lng` for a future OpenStreetMap purchases map.
 - 2026-08-23 — capture `store_lat`/`store_lng` at entry via place autocomplete
   (`/api/geocode` → Photon/OSM); columns now populated, map-ready.
+- 2026-08-25 — schema goes live: runnable `supabase/schema.sql` (tables, RLS,
+  enums + an `on auth.users` trigger that auto-creates a `profiles` row).
+  Email-OTP auth (Supabase) with cross-device sync; `useCollection` reads/writes
+  Supabase when signed in and imports guest `localStorage` once on first sign-in.
+  Env-gated — no env vars means guest mode, unchanged. `albums` gains an
+  authenticated `update` policy so the shared cache can be refreshed on upsert.
