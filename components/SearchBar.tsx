@@ -101,7 +101,10 @@ export default function SearchBar() {
         {tooShort && <span>Type at least {MIN_CHARS} characters…</span>}
         {!tooShort && searched && source && results.length > 0 && (
           <span>
-            Results from <span className="capitalize text-accent">{source}</span>
+            Results from{" "}
+            <span className="font-medium capitalize text-[var(--text)]">
+              {source}
+            </span>
           </span>
         )}
         {error && <span className="text-accent">{error}</span>}
